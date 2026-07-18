@@ -1,0 +1,10 @@
+# ── Scored path only ──────────────────────────────────────────────────────
+# These are the ONLY dependencies the automated pipeline needs to run
+# `./run.sh` (feature generation + prediction). Kept deliberately minimal so
+# a fresh `pip install -r requirements.txt` is fast and reproducible.
+# Versions pinned to the environment the model.pkl was trained in — an
+# unpickle must happen under the same LightGBM/numpy to be safe.
+pandas==2.3.3
+numpy==2.2.6
+lightgbm==4.6.0
+pyarrow==24.0.0

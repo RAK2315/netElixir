@@ -1,0 +1,8 @@
+# Normalise line endings so the repo is safe on the Linux scoring machine.
+* text=auto
+
+# Shell scripts MUST use LF — CRLF breaks the shebang / `bad interpreter` on Linux.
+*.sh text eol=lf
+
+# Treat the model artifact as binary (no eol munging, no diff noise).
+*.pkl binary
