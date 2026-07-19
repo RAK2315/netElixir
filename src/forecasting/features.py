@@ -224,10 +224,12 @@ def build_inference(
     empty-but-well-formed frames (correct columns) so the pipeline writes a
     valid header-only CSV instead of crashing.
     """
-    recs = _campaign_daily(df)
-    anchor = pd.Timestamp(anchor_date) if anchor_date is not None else df["date"].max()
     meta_cols = ["anchor", "channel", "campaign_id", "campaign_type",
                  "campaign_name", "horizon", "planned_spend"]
+    if df.empty:  # no data at all -> valid empty frames, never crash
+        return pd.DataFrame(columns=FEATURE_COLUMNS), pd.DataFrame(columns=meta_cols)
+    recs = _campaign_daily(df)
+    anchor = pd.Timestamp(anchor_date) if anchor_date is not None else df["date"].max()
 
     def trail(rec, w):
         return _window_sum(rec["cum"], rec["idx"], anchor, w, "spend")

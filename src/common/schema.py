@@ -60,6 +60,30 @@ UNIFIED_COLUMNS = [
 ]
 
 
+def _num(s: pd.Series) -> pd.Series:
+    """Robust numeric parse: strips thousands-commas / whitespace and coerces
+    anything unparseable ('-', 'N/A', '') to NaN instead of raising. Real
+    analytics exports are messy; the scorer 'changes the rows', so a held-out
+    file could contain any of these."""
+    if s.dtype == object:
+        s = s.astype(str).str.replace(",", "", regex=False).str.strip()
+    return pd.to_numeric(s, errors="coerce")
+
+
+def _dt(s: pd.Series) -> pd.Series:
+    """Robust datetime parse: fast path for a consistent format, mixed-format
+    fallback, and junk coerced to NaT (dropped later) rather than crashing."""
+    try:
+        return pd.to_datetime(s)
+    except Exception:
+        return pd.to_datetime(s, errors="coerce", format="mixed")
+
+
+def _col(df: pd.DataFrame, name: str) -> pd.Series:
+    """Numeric column if present, else an all-NaN series (missing optional col)."""
+    return _num(df[name]) if name in df.columns else pd.Series(np.nan, index=df.index)
+
+
 def _norm_type(raw: object) -> str:
     if raw is None or (isinstance(raw, float) and np.isnan(raw)):
         return "UNKNOWN"
@@ -104,13 +128,13 @@ def _adapt_google(df: pd.DataFrame) -> pd.DataFrame:
     out["campaign_id"] = df["campaign_id"].astype(str)
     out["campaign_name"] = df["campaign_name"].astype(str)
     out["campaign_type"] = df["campaign_advertising_channel_type"].map(_norm_type)
-    out["date"] = pd.to_datetime(df["segments_date"])
-    out["spend"] = df["metrics_cost_micros"].astype(float) / 1e6  # micros -> currency
-    out["revenue"] = df["metrics_conversions_value"].astype(float)
-    out["clicks"] = df["metrics_clicks"].astype(float)
-    out["impressions"] = df["metrics_impressions"].astype(float)
-    out["conversions"] = df["metrics_conversions"].astype(float)
-    out["daily_budget"] = df.get("campaign_budget_amount", np.nan)
+    out["date"] = _dt(df["segments_date"])
+    out["spend"] = _num(df["metrics_cost_micros"]) / 1e6  # micros -> currency
+    out["revenue"] = _num(df["metrics_conversions_value"])
+    out["clicks"] = _num(df["metrics_clicks"])
+    out["impressions"] = _num(df["metrics_impressions"])
+    out["conversions"] = _num(df["metrics_conversions"])
+    out["daily_budget"] = _col(df, "campaign_budget_amount")
     out["channel"] = "google"
     out["revenue_is_imputed"] = False
     return out
@@ -121,13 +145,13 @@ def _adapt_bing(df: pd.DataFrame) -> pd.DataFrame:
     out["campaign_id"] = df["CampaignId"].astype(str)
     out["campaign_name"] = df["CampaignName"].astype(str)
     out["campaign_type"] = df["CampaignType"].map(_norm_type)
-    out["date"] = pd.to_datetime(df["TimePeriod"])
-    out["spend"] = df["Spend"].astype(float)
-    out["revenue"] = df["Revenue"].astype(float)
-    out["clicks"] = df["Clicks"].astype(float)
-    out["impressions"] = df["Impressions"].astype(float)
-    out["conversions"] = df["Conversions"].astype(float)
-    out["daily_budget"] = df.get("DailyBudget", np.nan)
+    out["date"] = _dt(df["TimePeriod"])
+    out["spend"] = _num(df["Spend"])
+    out["revenue"] = _num(df["Revenue"])
+    out["clicks"] = _num(df["Clicks"])
+    out["impressions"] = _num(df["Impressions"])
+    out["conversions"] = _num(df["Conversions"])
+    out["daily_budget"] = _col(df, "DailyBudget")
     out["channel"] = "bing"
     out["revenue_is_imputed"] = False
     return out
@@ -143,13 +167,13 @@ def _adapt_meta(df: pd.DataFrame) -> pd.DataFrame:
     out["campaign_id"] = df["campaign_id"].astype(str)
     out["campaign_name"] = df["campaign_name"].astype(str)
     out["campaign_type"] = df["campaign_name"].map(_infer_meta_type)
-    out["date"] = pd.to_datetime(df["date_start"])
-    out["spend"] = df["spend"].astype(float)
+    out["date"] = _dt(df["date_start"])
+    out["spend"] = _num(df["spend"])
     out["revenue"] = np.nan  # imputed later
-    out["clicks"] = df["clicks"].astype(float)
-    out["impressions"] = df["impressions"].astype(float)
-    out["conversions"] = df["conversion"].astype(float)  # broad metric, kept as feature
-    out["daily_budget"] = df.get("daily_budget", np.nan)
+    out["clicks"] = _num(df["clicks"])
+    out["impressions"] = _num(df["impressions"])
+    out["conversions"] = _num(df["conversion"])  # broad metric, kept as feature
+    out["daily_budget"] = _col(df, "daily_budget")
     out["channel"] = "meta"
     out["revenue_is_imputed"] = True
     return out
@@ -179,8 +203,13 @@ def load_channel_data(data_dir: str) -> tuple[pd.DataFrame, LoadReport]:
 
     frames, files_read, warnings = [], [], []
     for p in paths:
-        raw = pd.read_csv(p)
-        raw = raw.loc[:, [c for c in raw.columns if not str(c).startswith("Unnamed")]]
+        try:
+            raw = pd.read_csv(p)
+        except Exception as e:
+            warnings.append(f"Skipped {os.path.basename(p)}: unreadable ({e}).")
+            continue
+        raw.columns = [str(c).strip() for c in raw.columns]  # tolerate stray whitespace
+        raw = raw.loc[:, [c for c in raw.columns if not c.startswith("Unnamed")]]
         ch = _detect_channel(set(raw.columns))
         if ch is None:
             warnings.append(f"Skipped {os.path.basename(p)}: unrecognised schema.")
@@ -197,15 +226,16 @@ def load_channel_data(data_dir: str) -> tuple[pd.DataFrame, LoadReport]:
     df = clean_long(df)
     df, meta_roas = impute_meta_revenue(df)
 
+    empty = df.empty
     rows_per_channel = df.groupby("channel").size().to_dict()
     report = LoadReport(
         files_read=files_read,
         channels_found=sorted(df["channel"].unique().tolist()),
         rows_per_channel={k: int(v) for k, v in rows_per_channel.items()},
-        date_min=str(df["date"].min().date()),
-        date_max=str(df["date"].max().date()),
+        date_min="" if empty else str(df["date"].min().date()),
+        date_max="" if empty else str(df["date"].max().date()),
         meta_assumed_roas=round(meta_roas, 3),
-        warnings=warnings,
+        warnings=warnings + (["No data rows after cleaning."] if empty else []),
     )
     return df, report
 
@@ -215,9 +245,10 @@ def clean_long(df: pd.DataFrame) -> pd.DataFrame:
     num = ["spend", "revenue", "clicks", "impressions", "conversions", "daily_budget"]
     for c in num:
         df[c] = pd.to_numeric(df[c], errors="coerce")
-    # metrics can't be negative; clip (revenue kept NaN where imputed-later)
+    # metrics can't be negative; NaN -> 0 so junk/missing values don't poison
+    # trailing-window sums (revenue kept NaN where it will be imputed later)
     for c in ["spend", "clicks", "impressions", "conversions"]:
-        df[c] = df[c].clip(lower=0)
+        df[c] = df[c].fillna(0).clip(lower=0)
     df.loc[df["revenue"].notna(), "revenue"] = df.loc[
         df["revenue"].notna(), "revenue"
     ].clip(lower=0)
