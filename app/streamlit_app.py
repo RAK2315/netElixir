@@ -54,12 +54,38 @@ def load_data(data_dir):
 
 
 @st.cache_data(show_spinner=False)
-def forecast(_model, long_df, budget_mult_key):
-    """Recompute the full forecast for a given per-channel budget multiplier
-    tuple. budget_mult_key is a hashable tuple so caching works."""
+def base_inference(_long_df):
+    """Build the base feature matrix ONCE (run-rate budget, mult=1.0). This is
+    the expensive part (per-campaign daily series); it does NOT depend on the
+    sliders, so we compute it a single time and reuse it for every multiplier."""
+    X, meta = build_inference(_long_df, HORIZONS, budget_multipliers=None)
+    return X, meta
+
+
+@st.cache_data(show_spinner=False)
+def forecast(_model, _X_base, _meta_base, budget_mult_key):
+    """Apply a per-channel budget multiplier and predict. Changing the budget
+    only scales ``planned_spend`` / ``planned_vs_runrate`` (everything else is
+    identical), so this is a cheap column operation + a 0.25s predict — no
+    DataFrame re-hashing, no rebuilding features. Only the small multiplier
+    tuple is hashed for the cache."""
     mult = dict(budget_mult_key)
-    X, meta = build_inference(long_df, HORIZONS, budget_multipliers=mult)
+    factors = _meta_base["channel"].map(lambda c: mult.get(c, 1.0)).to_numpy()
+    X = _X_base.copy()
+    meta = _meta_base.copy()
+    X["planned_spend"] = _X_base["planned_spend"].to_numpy() * factors
+    X["planned_vs_runrate"] = factors
+    meta["planned_spend"] = _meta_base["planned_spend"].to_numpy() * factors
     return _model.predict_frame(X, meta)
+
+
+@st.cache_data(show_spinner=False)
+def hist_blended_daily(_long_df):
+    """Historical blended daily revenue (7d smoothed) for the fan chart. Does
+    not depend on the sliders, so compute once and cache."""
+    daily = daily_channel_totals(_long_df)
+    return (daily.groupby("date")["revenue"].sum()
+            .rolling(7, min_periods=1).mean().reset_index())
 
 
 def money(x):
@@ -116,8 +142,9 @@ with st.sidebar:
 
 mult_key = tuple(sorted(mult.items()))
 base_key = tuple((ch, 1.0) for ch in sorted(channels))
-preds = forecast(model, long_df, mult_key)
-base_preds = forecast(model, long_df, base_key)
+X_base, meta_base = base_inference(long_df)
+preds = forecast(model, X_base, meta_base, mult_key)
+base_preds = forecast(model, X_base, meta_base, base_key)
 
 
 def blended_row(p, h, metric):
@@ -140,9 +167,7 @@ c3.metric("Blended ROAS (P50)", f"{roas.p50:.2f}x",
 
 # ── fan chart: history + forecast cone ─────────────────────────────────────
 st.subheader("Revenue trajectory & forecast cone")
-daily = daily_channel_totals(long_df)
-blended_daily = (daily.groupby("date")["revenue"].sum()
-                 .rolling(7, min_periods=1).mean().reset_index())
+blended_daily = hist_blended_daily(long_df)
 anchor = long_df["date"].max()
 
 fig = go.Figure()
@@ -187,7 +212,7 @@ rows = []
 for s in sweep:
     m = {ch: 1.0 for ch in channels}
     m[sel] = float(s)
-    p = forecast(model, long_df, tuple(sorted(m.items())))
+    p = forecast(model, X_base, meta_base, tuple(sorted(m.items())))
     r = blended_row(p, horizon, "revenue")
     ro = blended_row(p, horizon, "roas")
     rows.append({"mult": s, "revenue": r.p50, "roas": ro.p50})
