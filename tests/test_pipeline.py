@@ -62,19 +62,32 @@ def test_supervised_target_is_future_only():
     assert "horizon" in X.columns          # horizon is a feature, not leaked label
 
 
-def test_output_contract():
+def test_scored_output_contract():
+    """The CSV the grader scores: input-mirroring columns + Revenue/ROAS."""
+    from src.predict import OUTPUT_COLUMNS, build_output
+    df, _ = load_channel_data(DATA_DIR)
+    with open(MODEL, "rb") as f:
+        model = pickle.load(f)
+    X, meta = build_inference(df, HORIZONS)
+    combined = pd.concat([X.reset_index(drop=True), meta.reset_index(drop=True)], axis=1)
+    combined = combined.loc[:, ~combined.columns.duplicated()]
+    out = build_output(model, combined)
+    assert list(out.columns) == OUTPUT_COLUMNS
+    assert out.isna().sum().sum() == 0
+    assert ((out.Revenue_p10 <= out.Revenue) & (out.Revenue <= out.Revenue_p90)).all()
+    assert ((out.ROAS_p10 <= out.ROAS) & (out.ROAS <= out.ROAS_p90)).all()
+    assert set(out.horizon_days.unique()) == set(HORIZONS)
+    assert set(out.channel.unique()).issubset({"google", "bing", "meta"})
+
+
+def test_predict_frame_grains():
+    """The multi-grain table used by the demo app stays coherent."""
     df, _ = load_channel_data(DATA_DIR)
     with open(MODEL, "rb") as f:
         model = pickle.load(f)
     X, meta = build_inference(df, HORIZONS)
     out = model.predict_frame(X, meta)
-    assert list(out.columns) == ["horizon_days", "grain", "entity", "metric",
-                                 "p10", "p50", "p90"]
-    assert out.isna().sum().sum() == 0
-    assert ((out.p10 <= out.p50) & (out.p50 <= out.p90)).all()
     assert set(out.grain.unique()) == {"blended", "channel", "campaign_type", "campaign"}
-    assert set(out.metric.unique()) == {"revenue", "roas"}
-    # blended revenue ~= sum of channel revenue (coherent aggregation, within MC noise)
     for h in HORIZONS:
         bl = out[(out.grain == "blended") & (out.metric == "revenue") &
                  (out.horizon_days == h)]["p50"].iloc[0]

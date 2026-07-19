@@ -88,27 +88,32 @@ PYTHONPATH=. python src/train.py     # writes pickle/model.pkl + prints backtest
 
 ## Output contract: `output/predictions.csv`
 
-A tidy, self-describing table (written fresh each run):
+Per the organizers' guidance, the output carries the **same identifying columns
+as the input/training data plus the forecasted metric (Revenue / ROAS)**. One
+row per campaign per horizon (written fresh each run):
 
-| column | values |
+| column | meaning |
 |---|---|
-| `horizon_days` | `30`, `60`, `90` |
-| `grain` | `blended`, `channel`, `campaign_type`, `campaign` |
-| `entity` | the channel/type/campaign name (`ALL` for blended) |
-| `metric` | `revenue`, `roas` |
-| `p10`, `p50`, `p90` | probabilistic forecast (10th / 50th / 90th percentile) |
+| `channel` | `google` / `bing` / `meta` (mirrors input) |
+| `campaign_id` | campaign id (mirrors input) |
+| `campaign_name` | campaign name (mirrors input) |
+| `campaign_type` | normalised type, e.g. `SEARCH`, `PERFORMANCE_MAX` (mirrors input) |
+| `horizon_days` | forecast window: `30`, `60`, `90` |
+| `Revenue` | forecasted aggregate revenue over the window (point / P50) |
+| `ROAS` | forecasted ROAS = Revenue / planned spend (point / P50) |
+| `Revenue_p10`, `Revenue_p90` | probabilistic revenue range (brief requires ranges) |
+| `ROAS_p10`, `ROAS_p90` | probabilistic ROAS range |
 
 Example rows:
 ```
-horizon_days,grain,entity,metric,p10,p50,p90
-90,blended,ALL,revenue,813343.0,892175.0,966003.0
-90,blended,ALL,roas,3.97,4.36,4.72
-90,channel,google,revenue,668989.3,746264.6,812761.9
+channel,campaign_id,campaign_name,campaign_type,horizon_days,Revenue,ROAS,Revenue_p10,Revenue_p90,ROAS_p10,ROAS_p90
+bing,566560838,Search_TM_Campaign_02,SEARCH,30,4063.72,3.7959,290.76,9545.62,0.2716,8.9165
+google,9988712287,Search_TM_Campaign_01,SEARCH,90,58210.40,4.9120,41003.11,71880.55,3.4610,6.0680
 ```
 
 Forecasts are anchored at the latest date present in `data/` and, by default,
-assume spend continues at the trailing 30-day run-rate. The budget simulator
-(app) overrides that assumption per channel.
+assume spend continues at the trailing 30-day run-rate. Channel- / campaign-type
+/ blended aggregates and the budget simulator live in the demo app.
 
 ---
 

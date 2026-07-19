@@ -2,20 +2,28 @@
 Prediction stage of the scored pipeline (step 2 of run.sh).
 
 Loads the committed pickle and the feature matrix from step 1, then writes the
-probabilistic forecast table to ``--output``.
+forecast to ``--output``.
 
     PYTHONPATH=. python src/predict.py --features features.parquet \
         --model ./pickle/model.pkl --output ./output/predictions.csv
 
-Output schema (documented in README.md):
-    horizon_days , grain , entity , metric , p10 , p50 , p90
-  * grain  in {blended, channel, campaign_type, campaign}
-  * metric in {revenue, roas}
-  * horizon_days in {30, 60, 90}
+Output schema (per organizer guidance: "same columns as the training data plus
+the forecasted metric, e.g. Revenue / ROAS"). One row per campaign per horizon:
+
+    channel, campaign_id, campaign_name, campaign_type, horizon_days,
+    Revenue, ROAS,                       # point forecast (P50)
+    Revenue_p10, Revenue_p90,            # probabilistic range (brief requires it)
+    ROAS_p10, ROAS_p90
+
+  * ``channel / campaign_id / campaign_name / campaign_type`` mirror the input
+    (training) data's identifying columns.
+  * ``Revenue`` / ``ROAS`` are the forecasted metrics (median, P50).
+  * ``horizon_days`` in {30, 60, 90}; ``Revenue`` is aggregate revenue over that
+    window, ``ROAS`` = Revenue / planned spend over the window.
 
 Unpickling note: we import ForecastModel *before* pickle.load so the class is
 resolvable; run.sh sets PYTHONPATH=. so ``src.forecasting.model`` is importable.
-No network, deterministic (fixed seed inside the model's Monte-Carlo step).
+No network, deterministic.
 """
 from __future__ import annotations
 
@@ -28,13 +36,47 @@ import sys
 # Linux scorer and local Windows/Git-Bash).
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import numpy as np
 import pandas as pd
 
 # Import BEFORE unpickling so the class resolves. Do not remove.
 from src.forecasting.model import ForecastModel  # noqa: F401
 
-META_COLS = ["anchor", "channel", "campaign_id", "campaign_type",
-             "campaign_name", "horizon", "planned_spend"]
+OUTPUT_COLUMNS = [
+    "channel", "campaign_id", "campaign_name", "campaign_type", "horizon_days",
+    "Revenue", "ROAS", "Revenue_p10", "Revenue_p90", "ROAS_p10", "ROAS_p90",
+]
+
+
+def build_output(model: "ForecastModel", combined: pd.DataFrame) -> pd.DataFrame:
+    """Turn the feature matrix into the campaign-level, input-mirroring output."""
+    if len(combined) == 0:
+        return pd.DataFrame(columns=OUTPUT_COLUMNS)
+
+    X = combined[model.feature_columns]
+    q = model.predict_quantiles(X)  # p10 / p50 / p90 revenue per campaign-horizon
+    planned = pd.to_numeric(combined["planned_spend"], errors="coerce").to_numpy()
+    safe = np.where(planned > 0, planned, np.nan)
+
+    out = pd.DataFrame({
+        "channel": combined["channel"].to_numpy(),
+        "campaign_id": combined["campaign_id"].to_numpy(),
+        "campaign_name": combined["campaign_name"].to_numpy(),
+        "campaign_type": combined["campaign_type"].to_numpy(),
+        "horizon_days": combined["horizon"].astype(int).to_numpy(),
+        "Revenue": q["p50"].to_numpy(),
+        "ROAS": q["p50"].to_numpy() / safe,
+        "Revenue_p10": q["p10"].to_numpy(),
+        "Revenue_p90": q["p90"].to_numpy(),
+        "ROAS_p10": q["p10"].to_numpy() / safe,
+        "ROAS_p90": q["p90"].to_numpy() / safe,
+    })
+    # ROAS is undefined without spend -> 0.0 rather than NaN (valid, scoreable)
+    for c in ["ROAS", "ROAS_p10", "ROAS_p90"]:
+        out[c] = out[c].fillna(0.0).round(4)
+    for c in ["Revenue", "Revenue_p10", "Revenue_p90"]:
+        out[c] = out[c].round(2)
+    return out.sort_values(["channel", "campaign_id", "horizon_days"]).reset_index(drop=True)
 
 
 def main():
@@ -48,19 +90,17 @@ def main():
         model: ForecastModel = pickle.load(f)
 
     combined = pd.read_parquet(args.features)
-    X = combined[model.feature_columns]
-    meta = combined[META_COLS]
-
-    preds = model.predict_frame(X, meta)
+    out = build_output(model, combined)
 
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
-    preds.to_csv(args.output, index=False)
-    print(f"[predict] wrote {len(preds):,} forecast rows to {args.output}")
-    # tiny sanity summary for the console
-    blended = preds[(preds.grain == "blended") & (preds.metric == "revenue")]
-    for _, r in blended.iterrows():
-        print(f"          blended revenue {int(r.horizon_days)}d: "
-              f"p50={r.p50:,.0f}  [{r.p10:,.0f} .. {r.p90:,.0f}]")
+    out.to_csv(args.output, index=False)
+    print(f"[predict] wrote {len(out):,} campaign-horizon rows to {args.output}")
+    # tiny console summary: blended revenue per horizon
+    if len(out):
+        for h in sorted(out["horizon_days"].unique()):
+            sub = out[out.horizon_days == h]
+            print(f"          {int(h)}d: blended Revenue p50={sub['Revenue'].sum():,.0f} "
+                  f"across {len(sub)} campaigns")
 
 
 if __name__ == "__main__":
