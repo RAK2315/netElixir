@@ -83,6 +83,9 @@ class ForecastModel:
         are aggregated to type/channel/blended by Monte-Carlo. ROAS = revenue /
         planned_spend at the matching grain.
         """
+        out_cols = ["horizon_days", "grain", "entity", "metric", "p10", "p50", "p90"]
+        if len(X) == 0:                       # nothing to forecast -> valid empty table
+            return pd.DataFrame(columns=out_cols)
         q = self.predict_quantiles(X)
         base = meta.copy().reset_index(drop=True)
         base = pd.concat([base, q.reset_index(drop=True)], axis=1)

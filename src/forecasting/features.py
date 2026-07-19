@@ -217,18 +217,41 @@ def build_inference(
     ``budget_multipliers`` (optional, keyed by channel) scales the run-rate
     planned spend — this is exactly what the budget simulator passes in.
     Returns (X, meta) aligned row-for-row.
+
+    Robustness: the active-campaign filter relaxes gracefully (30d -> 90d ->
+    all-time spend) so we never return an empty forecast just because the data
+    ends on a quiet stretch. If there is genuinely no spend anywhere, we return
+    empty-but-well-formed frames (correct columns) so the pipeline writes a
+    valid header-only CSV instead of crashing.
     """
     recs = _campaign_daily(df)
     anchor = pd.Timestamp(anchor_date) if anchor_date is not None else df["date"].max()
+    meta_cols = ["anchor", "channel", "campaign_id", "campaign_type",
+                 "campaign_name", "horizon", "planned_spend"]
+
+    def trail(rec, w):
+        return _window_sum(rec["cum"], rec["idx"], anchor, w, "spend")
+
+    def alltime(rec):
+        return float(rec["cum"]["spend"].iloc[-1])
+
+    items = list(recs.items())
+    # graceful relaxation of the "active" window
+    active = [(k, r) for k, r in items if trail(r, 30) > 0]
+    if not active:
+        active = [(k, r) for k, r in items if trail(r, 90) > 0]
+    if not active:
+        active = [(k, r) for k, r in items if alltime(r) > 0]
+
     rows, metas = [], []
-    for (ch, cid), rec in recs.items():
-        if _window_sum(rec["cum"], rec["idx"], anchor, 30, "spend") <= 0:
-            continue
+    for (ch, cid), rec in active:
         mult = 1.0 if not budget_multipliers else budget_multipliers.get(ch, 1.0)
+        # best available daily run-rate: 30d, else 90d, else all-time average
+        span_days = max((rec["last_active"] - rec["first_active"]).days + 1, 1)
+        rr = (trail(rec, 30) / 30.0) or (trail(rec, 90) / 90.0) or (alltime(rec) / span_days)
         for h in horizons:
             feats = _row_features(rec, anchor, h, planned_spend=None)
-            runrate_plan = feats["runrate_daily_spend_30"] * h
-            planned = runrate_plan * mult
+            planned = rr * h * mult
             feats["planned_spend"] = planned
             feats["planned_vs_runrate"] = mult
             rows.append(feats)
@@ -238,6 +261,9 @@ def build_inference(
                 "campaign_name": rec["campaign_name"], "horizon": h,
                 "planned_spend": planned,
             })
+
+    if not rows:  # truly no spend anywhere -> valid empty frames, no crash
+        return pd.DataFrame(columns=FEATURE_COLUMNS), pd.DataFrame(columns=meta_cols)
     X = pd.DataFrame(rows)[FEATURE_COLUMNS]
     meta = pd.DataFrame(metas)
     return X, meta
