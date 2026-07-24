@@ -18,8 +18,11 @@ features.parquet
 
 # NetElixir-provided briefing docs — keep out of the public repo (confidential)
 *.pdf
-# ...but DO track our own generated report in docs/
+# ...but DO track our own generated reports in docs/
 !docs/*.pdf
+# ...except the confidential NetElixir briefs stay ignored even inside docs/
+docs/AIgnition Project Brief 2026.pdf
+docs/hackathon-submission-guide.pdf
 # Original provided dataset dump (the runnable sample lives in data/ instead)
 /datasets/
 
