@@ -18,6 +18,8 @@ features.parquet
 
 # NetElixir-provided briefing docs — keep out of the public repo (confidential)
 *.pdf
+# ...but DO track our own generated report in docs/
+!docs/*.pdf
 # Original provided dataset dump (the runnable sample lives in data/ instead)
 /datasets/
 
