@@ -16,6 +16,10 @@ output/
 features.parquet
 *.log
 
+# Presentation image assets (local only, for building the slide deck)
+/images/
+netElixir.zip
+
 # NetElixir-provided briefing docs — keep out of the public repo (confidential)
 *.pdf
 # ...but DO track our own generated reports in docs/
