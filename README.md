@@ -11,8 +11,9 @@
 ![Blended WAPE](https://img.shields.io/badge/blended%20WAPE-7.8%25-2ea44f)
 ![Interval coverage](https://img.shields.io/badge/interval%20coverage-89--94%25-2ea44f)
 ![Offline scored](https://img.shields.io/badge/scored%20pipeline-offline%20%2F%20no%20network-blue)
+![Finalist](https://img.shields.io/badge/AIgnition%203.0-Top%2010%20Finalist-C9A227)
 
-**AIgnition 2026 - NetElixir.** An AI-assisted forecasting utility that predicts
+**AIgnition 3.0 - NetElixir (Grand Finalist, Top 10).** An AI-assisted forecasting utility that predicts
 e-commerce **revenue** and **ROAS** as *probabilistic ranges* (P10/P50/P90) over
 30/60/90-day windows, across paid channels (Google, Microsoft/Bing, Meta), and
 explains the forecast with an **LLM causal-inference layer**.
@@ -155,9 +156,10 @@ src/
   predict.py               # run.sh step 2
   train.py                 # (offline) trains + pickles the model
   insights.py              # LLM causal layer + offline fallback
-app/streamlit_app.py       # demo dashboard
+app/streamlit_app.py       # demo dashboard (Streamlit Cloud-ready)
 tests/test_pipeline.py     # dependency-free sanity tests
-docs/                      # METHODOLOGY, ARCHITECTURE, DEMO
+docs/                      # METHODOLOGY, ARCHITECTURE, DEMO, plus the
+                           # end-to-end project report (PDF) and finale kit
 ```
 
 ## Environment
