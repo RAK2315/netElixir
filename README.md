@@ -13,6 +13,10 @@
 ![Offline scored](https://img.shields.io/badge/scored%20pipeline-offline%20%2F%20no%20network-blue)
 ![Finalist](https://img.shields.io/badge/AIgnition%203.0-Top%2010%20Finalist-C9A227)
 
+[![Live demo](https://img.shields.io/badge/Live%20demo-sigmoid--forecaster.streamlit.app-brightgreen)](https://sigmoid-forecaster.streamlit.app/)
+
+**Live demo:** https://sigmoid-forecaster.streamlit.app/
+
 **AIgnition 3.0 - NetElixir (Grand Finalist, Top 10).** An AI-assisted forecasting utility that predicts
 e-commerce **revenue** and **ROAS** as *probabilistic ranges* (P10/P50/P90) over
 30/60/90-day windows, across paid channels (Google, Microsoft/Bing, Meta), and

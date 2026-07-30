@@ -200,6 +200,7 @@ Now, rather than just talk about it, let me show you the actual product live."
 [[ LIVE DEMO ]]                                               (4:00)
 --------------------------------------------------------------------------------
 Switch to the Streamlit app (already open in a browser tab, loaded).
+App URL: https://sigmoid-forecaster.streamlit.app/
 Follow docs/DEMO_PRESENTATION_RUNSHEET for the exact clicks. In short:
 
 [DEMO-1] Point to the top: "This is the live tool. Everything updates in real time."
@@ -290,6 +291,7 @@ ON SLIDE:
 - ~8% accuracy on total sales, with an honest 89-94% range
 - Reliably passes the strict offline test - where many fail
 - Live budget simulation + plain-English AI explanations
+- Live demo: https://sigmoid-forecaster.streamlit.app/  |  Code: github.com/RAK2315/netElixir
 - Thank you - happy to take questions
 IMAGE: 09_robustness.png (or a clean summary slide)
 SAY:

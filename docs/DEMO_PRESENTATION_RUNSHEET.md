@@ -8,7 +8,7 @@
 ---
 
 ## 0 - Pre-flight checklist (do this 10 minutes before)
-- [ ] Open the **live app** (Streamlit Cloud URL) in a browser tab and let it fully load once, so it's warm. Keep the tab open.
+- [ ] Open the **live app** https://sigmoid-forecaster.streamlit.app/ in a browser tab and let it fully load once, so it's warm (Streamlit Cloud sleeps idle apps; first wake takes ~30s). Keep the tab open.
 - [ ] In the app sidebar, confirm the **horizon is 90 days** and **all budget sliders are at 1.0** (use "Reset budgets").
 - [ ] Click **"Generate AI briefing" once now** so it's cached and appears instantly during the demo. Then you can re-click live.
 - [ ] Have a **backup**: the images in `images/` (especially `05_forecast_range.png`, `07_budget_response.png`) and a screen-recording of the app, in case the internet fails.
