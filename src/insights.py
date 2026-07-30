@@ -8,14 +8,14 @@ operational risk flags for an agency.
 Two important design choices:
   * **Provider-agnostic.** We speak the OpenAI-compatible chat-completions
     protocol over plain ``requests`` (no SDK dependency). Point it at Groq
-    (free, fast — the default), OpenRouter, xAI Grok, or OpenAI purely via env
+    (free, fast - the default), OpenRouter, xAI Grok, or OpenAI purely via env
     vars: ``LLM_BASE_URL``, ``LLM_API_KEY``, ``LLM_MODEL``.
   * **Never hard-fails.** If there is no key, no network, or the API errors, a
     deterministic rule-based narrative is generated from the same numbers. This
     keeps the demo working offline AND keeps the scored pipeline free of any LLM
     dependency (run.sh never imports this module).
 
-The LLM only ever *interprets* numbers we compute — it does not invent figures.
+The LLM only ever *interprets* numbers we compute - it does not invent figures.
 """
 from __future__ import annotations
 
@@ -57,7 +57,7 @@ class LLMConfig:
         return bool(self.api_key)
 
 
-# ── Numeric context assembly (the ground truth the LLM reasons over) ───────
+# -- Numeric context assembly (the ground truth the LLM reasons over) -------
 def build_context(long_df: pd.DataFrame, preds: pd.DataFrame,
                   meta_assumed_roas: float | None = None) -> dict:
     """Distil the data + forecast into a compact, faithful fact sheet."""
@@ -111,7 +111,7 @@ def build_context(long_df: pd.DataFrame, preds: pd.DataFrame,
 def _season_note(anchor: pd.Timestamp) -> str:
     m = (anchor + pd.Timedelta(days=45)).month  # midpoint of a 90d look-ahead
     if m in (11, 12):
-        return "Forecast window covers Nov-Dec holiday peak — expect seasonal uplift."
+        return "Forecast window covers Nov-Dec holiday peak - expect seasonal uplift."
     if m in (1, 2):
         return "Forecast window covers the post-holiday Q1 softening period."
     if m in (6, 7):
@@ -119,11 +119,11 @@ def _season_note(anchor: pd.Timestamp) -> str:
     return "No dominant seasonal event in the forecast window."
 
 
-# ── LLM call (OpenAI-compatible) ───────────────────────────────────────────
+# -- LLM call (OpenAI-compatible) -------------------------------------------
 _SYSTEM = (
     "You are a senior performance-marketing analyst at a digital agency. "
     "You explain revenue/ROAS forecasts to account managers. Be concise, "
-    "specific, and business-oriented. Only use the numbers provided — never "
+    "specific, and business-oriented. Only use the numbers provided - never "
     "invent figures. Flag uncertainty and operational risks honestly."
 )
 
@@ -173,7 +173,7 @@ def llm_generate(context: dict, config: LLMConfig | None = None) -> str | None:
         return None
 
 
-# ── Deterministic fallback narrative (offline-safe) ────────────────────────
+# -- Deterministic fallback narrative (offline-safe) ------------------------
 def render_fallback(context: dict) -> str:
     fc = context["forecast"]
     h90 = fc.get(90) or list(fc.values())[-1]
@@ -189,8 +189,8 @@ def render_fallback(context: dict) -> str:
     lines = ["### Forecast Summary",
              f"Over the next 90 days, blended revenue is expected around "
              f"**{money(h90['revenue_p50'])}** (P50), with a likely range of "
-             f"{money(h90['revenue_p10'])} – {money(h90['revenue_p90'])} "
-             f"(P10–P90) at a blended ROAS of ~{h90['roas_p50']}x. "
+             f"{money(h90['revenue_p10'])} - {money(h90['revenue_p90'])} "
+             f"(P10-P90) at a blended ROAS of ~{h90['roas_p50']}x. "
              f"{context['season_note']}",
              "", "### Why (Causal Drivers)"]
     lines.append(f"- **{top.title()}** is the largest projected revenue "
@@ -208,7 +208,7 @@ def render_fallback(context: dict) -> str:
                      f"({r['rev_change_pct']:+.0f}% MoM) - investigate efficiency "
                      f"(ROAS change {r['roas_delta']:+.2f}).")
     if context.get("meta_assumed_roas"):
-        lines.append(f"- **Meta revenue is imputed** (spend × assumed ROAS "
+        lines.append(f"- **Meta revenue is imputed** (spend x assumed ROAS "
                      f"{context['meta_assumed_roas']}x) because Meta reports no "
                      f"revenue; treat Meta figures as modelled, not measured.")
     lines.append("- Longer horizons carry wider intervals; the 90-day band is "

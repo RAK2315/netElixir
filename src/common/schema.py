@@ -2,7 +2,7 @@
 Channel schema adapters + unified data model.
 
 The three source channels arrive with *different* schemas (column names, date
-columns, cost units, and — for Meta — no revenue at all). This module is the
+columns, cost units, and - for Meta - no revenue at all). This module is the
 single place that knows those differences. Everything downstream (feature
 generation, training, prediction, the app) consumes the ONE unified long-format
 table produced here, so the rest of the codebase never touches raw channel
@@ -15,7 +15,7 @@ Unified long schema (one row = one campaign on one day):
     campaign_type  str    normalised (SEARCH / PERFORMANCE_MAX / SHOPPING / ...)
     date           datetime64[ns]
     spend          float  currency units
-    revenue        float  currency units  (imputed for Meta — see below)
+    revenue        float  currency units  (imputed for Meta - see below)
     clicks         float
     impressions    float
     conversions    float
@@ -25,7 +25,7 @@ Unified long schema (one row = one campaign on one day):
 Design note on the test contract: the scorer overwrites ``data/`` with held-out
 CSVs of the *same schema*. We therefore detect each channel by its column
 signature and read every ``*.csv`` in the folder, rather than hardcoding
-filenames — so unknown filenames with a known schema still load.
+filenames - so unknown filenames with a known schema still load.
 """
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-# ── Canonical campaign-type vocabulary ─────────────────────────────────────
+# -- Canonical campaign-type vocabulary -------------------------------------
 # Raw channels spell the same concept differently ("PerformanceMax" vs
 # "PERFORMANCE_MAX"). We map everything to one vocabulary so channel-agnostic
 # campaign-type forecasts are coherent.
@@ -92,7 +92,7 @@ def _norm_type(raw: object) -> str:
 
 
 def _infer_meta_type(name: object) -> str:
-    """Meta has no campaign_type column — infer a coarse funnel stage from the
+    """Meta has no campaign_type column - infer a coarse funnel stage from the
     campaign name (Prospecting / Remarketing / Generic ...). Purely descriptive;
     used for the campaign-type breakdown only."""
     n = str(name).lower()
@@ -105,7 +105,7 @@ def _infer_meta_type(name: object) -> str:
     return "META_GENERIC"
 
 
-# ── Per-channel column signatures (used for auto-detection) ────────────────
+# -- Per-channel column signatures (used for auto-detection) ----------------
 GOOGLE_COLS = {"campaign_id", "segments_date", "metrics_cost_micros",
                "metrics_conversions_value"}
 BING_COLS = {"CampaignId", "TimePeriod", "Revenue", "Spend"}
@@ -122,7 +122,7 @@ def _detect_channel(cols: set[str]) -> str | None:
     return None
 
 
-# ── Adapters: raw channel frame -> unified long frame ──────────────────────
+# -- Adapters: raw channel frame -> unified long frame ----------------------
 def _adapt_google(df: pd.DataFrame) -> pd.DataFrame:
     out = pd.DataFrame()
     out["campaign_id"] = df["campaign_id"].astype(str)
@@ -159,7 +159,7 @@ def _adapt_bing(df: pd.DataFrame) -> pd.DataFrame:
 
 def _adapt_meta(df: pd.DataFrame) -> pd.DataFrame:
     """Meta has NO revenue column, and its ``conversion`` field is a broad
-    conversion metric (sums to ~1.6M vs ~$88 AOV elsewhere) — NOT purchases.
+    conversion metric (sums to ~1.6M vs ~$88 AOV elsewhere) - NOT purchases.
     So we deliberately do NOT derive revenue from conversions here. Revenue is
     left as NaN and imputed later via spend x assumed-ROAS in
     :func:`impute_meta_revenue`, which keeps Meta proportionate to spend."""
@@ -292,7 +292,7 @@ def impute_meta_revenue(
 
 
 def daily_channel_totals(df: pd.DataFrame) -> pd.DataFrame:
-    """Collapse to channel x date totals — the base series for the app charts
+    """Collapse to channel x date totals - the base series for the app charts
     and for channel/blended aggregation."""
     return (
         df.groupby(["channel", "date"], as_index=False)[

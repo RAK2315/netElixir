@@ -3,8 +3,8 @@ Feature generation stage of the scored pipeline (step 1 of run.sh).
 
 Reads whatever channel CSVs are in ``--data-dir`` (auto-detected by schema, so
 the scorer's held-out files load without hardcoded names), unifies them, and
-writes the **inference feature matrix** — one row per currently-active campaign
-x horizon (30/60/90) — to a parquet the predict stage consumes.
+writes the **inference feature matrix** - one row per currently-active campaign
+x horizon (30/60/90) - to a parquet the predict stage consumes.
 
     PYTHONPATH=. python src/generate_features.py --data-dir ./data --out features.parquet
 

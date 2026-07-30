@@ -1,5 +1,5 @@
 ================================================================================
-AIgnition 3.0 GRAND FINALE  —  TEAM SIGMOID
+AIgnition 3.0 GRAND FINALE  -  TEAM SIGMOID
 SLIDE CONTENT + WORD-FOR-WORD SPEAKING SCRIPT   (target: ~18 minutes)
 ================================================================================
 
@@ -14,12 +14,12 @@ HOW TO USE THIS FILE
 Recommended deck order: 14 slides + a live demo between slide 9 and slide 10.
 
 ================================================================================
-SLIDE 1  —  TITLE                                              (0:30)
+SLIDE 1  -  TITLE                                              (0:30)
 ================================================================================
 ON SLIDE:
 - Probabilistic Revenue & ROAS Forecasting for E-commerce Marketing
 - An AI-assisted forecasting utility for digital marketing agencies
-- Team Sigmoid — Rehaan Ahmad Khan — JSS University, Noida
+- Team Sigmoid - Rehaan Ahmad Khan - JSS University, Noida
 - AIgnition 3.0 Grand Finalist
 IMAGE: none (clean title)
 
@@ -27,13 +27,13 @@ SAY:
 "Good [morning/afternoon] everyone, and thank you for having me. I'm Rehaan Ahmad Khan,
 presenting for Team Sigmoid. Our project is a probabilistic revenue and ROAS forecasting
 tool for e-commerce marketing. In simple words: it looks at a store's past advertising
-data and predicts how much money the ads will make in the next one to three months — not
-as a single risky guess, but as a realistic range — and it explains that prediction in
+data and predicts how much money the ads will make in the next one to three months - not
+as a single risky guess, but as a realistic range - and it explains that prediction in
 plain English using AI. Let me show you the problem it solves, how we built it, and then
 a live demo."
 
 ================================================================================
-SLIDE 2  —  THE PROBLEM                                        (1:30)
+SLIDE 2  -  THE PROBLEM                                        (1:30)
 ================================================================================
 ON SLIDE:
 - Agencies must promise results BEFORE the money is spent
@@ -44,112 +44,112 @@ ON SLIDE:
 IMAGE: none
 
 SAY:
-"Every online store spends money on ads across Google, Microsoft Bing, and Meta — that's
+"Every online store spends money on ads across Google, Microsoft Bing, and Meta - that's
 Facebook and Instagram. The agencies that manage this spending face a hard question: they
 have to promise results BEFORE the budget is deployed. And that's genuinely difficult,
 because sales change with the seasons, with customer behaviour, and the data itself is
 messy and scattered across different platforms that all report things differently.
 Most existing tools give you a single number, and worse, they never explain WHY performance
 is expected to go up or down. What agencies actually need is forward-looking decision
-support — a tool that says 'here's what to expect, here's how confident we are, and here's
-why' — instead of just another backward-looking report. That's exactly the gap we set out
+support - a tool that says 'here's what to expect, here's how confident we are, and here's
+why' - instead of just another backward-looking report. That's exactly the gap we set out
 to fill."
 
 ================================================================================
-SLIDE 3  —  WHAT WE BUILT                                      (1:30)
+SLIDE 3  -  WHAT WE BUILT                                      (1:30)
 ================================================================================
 ON SLIDE:
 - Predicts future SALES (Revenue) and ad efficiency (ROAS)
-- As a low–middle–high RANGE, for 30 / 60 / 90 days
+- As a low-middle-high RANGE, for 30 / 60 / 90 days
 - Broken down by channel, campaign type, and campaign
 - A budget simulator: "what if I spend more or less?"
 - An AI layer that explains the forecast in plain English
 IMAGE: 02_pipeline_steps.png
 SAY:
 "So here's what we built. You give it past ad data, and it predicts two things: future
-sales — we call that Revenue — and how efficient that spending is — that's ROAS, or Return
+sales - we call that Revenue - and how efficient that spending is - that's ROAS, or Return
 On Ad Spend. Crucially, it doesn't give one number; it gives a low, middle, and high
 estimate, like a weather forecast, for the next thirty, sixty, and ninety days. It breaks
 this down by channel, by campaign type, and by individual campaign. On top of that, it has
-a budget simulator — you can ask 'what happens if I spend twenty percent more on Meta?' —
+a budget simulator - you can ask 'what happens if I spend twenty percent more on Meta?' -
 and an AI layer that writes a plain-English explanation of the forecast. The single most
 important idea to remember from this whole talk is this: we predict a RANGE, not one number.
 That honesty about uncertainty is what makes it genuinely useful for planning."
 
 ================================================================================
-SLIDE 4  —  THE DATA                                           (1:00)
+SLIDE 4  -  THE DATA                                           (1:00)
 ================================================================================
 ON SLIDE:
 - Three daily ad files: Google, Bing, Meta
 - ~25,500 rows, ~Jan 2024 to Jun 2026
 - Each file has a DIFFERENT format
 - Google cost is in "micros" (divide by a million)
-- Meta has NO revenue column (a trap — next slide)
+- Meta has NO revenue column (a trap - next slide)
 IMAGE: 03_data_channels.png
 SAY:
-"We were given three files of daily advertising data — one each for Google, Bing, and Meta —
+"We were given three files of daily advertising data - one each for Google, Bing, and Meta -
 about twenty-five thousand rows in total, spanning early 2024 to mid 2026. The first
 challenge is that the three files don't match: they use different column names and even
-different units. For example, Google stores its cost in 'micros' — millionths of a dollar —
+different units. For example, Google stores its cost in 'micros' - millionths of a dollar -
 so we have to divide by a million to get real money. And, as you can see flagged in red,
 Meta has no revenue column at all. That leads to the most important data decision we made,
 which is the next slide."
 
 ================================================================================
-SLIDE 5  —  THE META TRAP (and our honest fix)                 (1:30)
+SLIDE 5  -  THE META TRAP (and our honest fix)                 (1:30)
 ================================================================================
 ON SLIDE:
-- Meta reports NO revenue — only a "conversion" count (~1.66 million)
+- Meta reports NO revenue - only a "conversion" count (~1.66 million)
 - That count is NOT purchases
-- Naive fix (conversions × price) = ~$146M of FAKE sales
-- Our fix: Meta revenue = spend × real return rate (Google+Bing, ~4.75×) ≈ $930K
+- Naive fix (conversions x price) = ~$146M of FAKE sales
+- Our fix: Meta revenue = spend x real return rate (Google+Bing, ~4.75x) ~ $930K
 - Clearly labelled as an estimate
 IMAGE: 04_meta_fix.png
 SAY:
-"Meta gives us no revenue, only a 'conversion' count — and that count adds up to about
+"Meta gives us no revenue, only a 'conversion' count - and that count adds up to about
 1.66 million, which is clearly not real purchases. Now, the naive thing to do would be to
 multiply that count by an average order value. If you do that, you invent about a hundred
-and forty-six MILLION dollars of fake sales — it would completely swamp everything else and
+and forty-six MILLION dollars of fake sales - it would completely swamp everything else and
 make the whole forecast meaningless. Instead, we estimate Meta's revenue as its spend times
-the REAL return rate we actually see on Google and Bing — roughly four-point-seven-five
-times — which gives a sensible figure around nine hundred and thirty thousand dollars. And
+the REAL return rate we actually see on Google and Bing - roughly four-point-seven-five
+times - which gives a sensible figure around nine hundred and thirty thousand dollars. And
 we clearly label it as an estimate everywhere it appears. I'm highlighting this because it
-shows we didn't just run a model — we actually looked at the data and handled its biggest
+shows we didn't just run a model - we actually looked at the data and handled its biggest
 trap honestly. Many teams will have missed this."
 
 ================================================================================
-SLIDE 6  —  THE BIG IDEA: TWO CLEAN PARTS                      (1:30)
+SLIDE 6  -  THE BIG IDEA: TWO CLEAN PARTS                      (1:30)
 ================================================================================
 ON SLIDE:
-- Part A — Scoring engine: offline, one command, no internet, always works
-- Part B — Showcase: dashboard + AI, for humans, never part of scoring
+- Part A - Scoring engine: offline, one command, no internet, always works
+- Part B - Showcase: dashboard + AI, for humans, never part of scoring
 - The AI/dashboard can NEVER break the scored result
 IMAGE: 01_architecture.png
 SAY:
 "Architecturally, the project is split into two clean parts, and this was a deliberate
 engineering decision. Part A, on top, is the scoring engine. An automated pipeline
 downloads our code, swaps in its own secret test data, runs ONE command, and checks our
-predictions — all with no internet access. If anything there breaks, we score zero, so we
-kept it simple, fast, and bullet-proof. Part B, at the bottom, is the showcase — the
-interactive dashboard and the AI explanations — which is for humans to explore. The key
+predictions - all with no internet access. If anything there breaks, we score zero, so we
+kept it simple, fast, and bullet-proof. Part B, at the bottom, is the showcase - the
+interactive dashboard and the AI explanations - which is for humans to explore. The key
 point is that Part B NEVER runs inside the scored command, so our fancy dashboard and AI
 can never cause the automated scoring to fail. A lot of teams bolt their AI onto the scored
 path and fail the automated test; our separation is exactly why ours is reliable."
 
 ================================================================================
-SLIDE 7  —  HOW A FORECAST IS MADE (4 steps)                   (1:30)
+SLIDE 7  -  HOW A FORECAST IS MADE (4 steps)                   (1:30)
 ================================================================================
 ON SLIDE:
-1. Tidy up — merge 3 messy files into one clean table
-2. Make clues — summarise each campaign's recent behaviour ("features")
-3. Predict a range — low / middle / high sales for 30-60-90 days
-4. Explain — AI writes a plain briefing (what, why, risks, actions)
+1. Tidy up - merge 3 messy files into one clean table
+2. Make clues - summarise each campaign's recent behaviour ("features")
+3. Predict a range - low / middle / high sales for 30-60-90 days
+4. Explain - AI writes a plain briefing (what, why, risks, actions)
 IMAGE: 02_pipeline_steps.png
 SAY:
 "Under the hood, the tool does four things in order. Step one, tidy up: it reads the three
 messy files and merges them into one clean table, fixing the units and estimating Meta's
 revenue along the way. Step two, make clues: for each campaign, it summarises the recent
-behaviour — how much it spent and earned lately, its trend, and the season — into numbers
+behaviour - how much it spent and earned lately, its trend, and the season - into numbers
 the model can learn from. In machine learning we call these 'features'. Step three, predict
 a range: a trained model looks at those clues and outputs a low, middle, and high sales
 figure for each time window; ROAS is then just sales divided by spend. And step four,
@@ -157,43 +157,43 @@ explain: the AI reads the numbers and writes a short, plain-English briefing. Le
 a moment on step three, the model, because that's the technical heart of the project."
 
 ================================================================================
-SLIDE 8  —  THE MODEL (in plain words)                         (2:00)
+SLIDE 8  -  THE MODEL (in plain words)                         (2:00)
 ================================================================================
 ON SLIDE:
-- LightGBM — a fast, proven prediction method
+- LightGBM - a fast, proven prediction method
 - We train THREE: one each for the low, middle, high line (quantile regression)
 - Then a "conformal" honesty check: widen the range if it was too narrow on past data
-- Budget is an input to the model — that's why the budget simulator is instant
+- Budget is an input to the model - that's why the budget simulator is instant
 IMAGE: 06_coverage.png  (optional; or keep text-only)
 SAY:
-"We use a method called LightGBM — it's a fast, well-proven prediction algorithm that's
+"We use a method called LightGBM - it's a fast, well-proven prediction algorithm that's
 excellent at learning from tables of data. The clever part is that we don't train one model;
-we train three. One learns the LOW line, one the MIDDLE, and one the HIGH line — this
+we train three. One learns the LOW line, one the MIDDLE, and one the HIGH line - this
 technique is called quantile regression, and it's what lets us output a range instead of a
-single number. But there's a catch: a raw model's range can be dishonest — too narrow, so
+single number. But there's a catch: a raw model's range can be dishonest - too narrow, so
 the truth falls outside it too often. So we add a calibration step called conformal
 prediction. In plain terms: we test our low-to-high range on past data, and if it was too
 narrow, we widen it until it's trustworthy. This gives us a mathematically honest range, not
-just a guess. One more thing: the planned budget is one of the model's inputs — and that's
+just a guess. One more thing: the planned budget is one of the model's inputs - and that's
 the reason the budget simulator you'll see in a moment reacts instantly, with no retraining."
 
 ================================================================================
-SLIDE 9  —  HOW ACCURATE ARE WE?                               (1:30)
+SLIDE 9  -  HOW ACCURATE ARE WE?                               (1:30)
 ================================================================================
 ON SLIDE:
 - Fair test: trained on older data, checked on newer data it had never seen
 - Total-sales forecast off by only ~8% on average
-- Low–high range caught the real answer 89–94% of the time (goal 80%)
+- Low-high range caught the real answer 89-94% of the time (goal 80%)
 - Honest, and slightly on the safe side
 IMAGE: 06_coverage.png
 SAY:
-"So how accurate is it? We tested honestly — we trained on older data and then checked the
+"So how accurate is it? We tested honestly - we trained on older data and then checked the
 predictions against newer data the model had never seen, which is a fair exam. Two results
-matter. First, on TOTAL sales — the number a business actually budgets on — our middle
+matter. First, on TOTAL sales - the number a business actually budgets on - our middle
 guess was off by only about eight percent on average. For revenue forecasting, that's
 strong. Second, and just as important, our low-to-high range caught the real answer between
 eighty-nine and ninety-four percent of the time, against a target of eighty percent. So our
-range isn't just wide hand-waving — it's calibrated, honest, and slightly on the safe side.
+range isn't just wide hand-waving - it's calibrated, honest, and slightly on the safe side.
 Now, rather than just talk about it, let me show you the actual product live."
 
 ================================================================================
@@ -207,112 +207,112 @@ Follow docs/DEMO_PRESENTATION_RUNSHEET for the exact clicks. In short:
          SAY: "Here's the 90-day forecast: about [X] in sales, with a low-high band from
          [low] to [high], at a blended ROAS of about [Y] times."
 [DEMO-3] Section 2 cone: "This shows total sales building up over 90 days. Notice the shaded
-         band WIDENS further out — that's honest uncertainty."
-[DEMO-4] Section 3 breakdown: "And it splits by channel and campaign type — so an agency
+         band WIDENS further out - that's honest uncertainty."
+[DEMO-4] Section 3 breakdown: "And it splits by channel and campaign type - so an agency
          knows exactly WHERE the money comes from."
-[DEMO-5] Section 4 budget simulator: move the Meta slider up. SAY: "Watch — I'll increase
+[DEMO-5] Section 4 budget simulator: move the Meta slider up. SAY: "Watch - I'll increase
          Meta's budget. Sales go up... but look at the ROAS curve on the right, it slowly
          drops. That's diminishing returns, live."
 [DEMO-6] Section 5: click "Generate AI briefing". SAY: "And the AI reads only these numbers
-         and writes the explanation — what to expect, why, the risks, and what to do."
-[DEMO-7] Section 6: point to the Meta note. SAY: "And we're transparent — it clearly states
+         and writes the explanation - what to expect, why, the risks, and what to do."
+[DEMO-7] Section 6: point to the Meta note. SAY: "And we're transparent - it clearly states
          Meta revenue is an estimate."
 Then switch back to the slides.
 --------------------------------------------------------------------------------
 
 ================================================================================
-SLIDE 10  —  THE FORECAST WITH ITS RANGE                       (0:45)
+SLIDE 10  -  THE FORECAST WITH ITS RANGE                       (0:45)
 ================================================================================
 ON SLIDE:
 - Predicted total sales for 30 / 60 / 90 days
-- Each shown with its low–high band
-- The band widens further out — honest uncertainty
+- Each shown with its low-high band
+- The band widens further out - honest uncertainty
 IMAGE: 05_forecast_range.png
 SAY:
 "To recap what you just saw as a clean picture: these are our predicted total sales for
 thirty, sixty, and ninety days, each with its low-to-high band. As before, the band gets
-wider the further out we go — we're honestly less certain about ninety days than about
+wider the further out we go - we're honestly less certain about ninety days than about
 thirty."
 
 ================================================================================
-SLIDE 11  —  BROKEN DOWN BY CHANNEL                            (0:45)
+SLIDE 11  -  BROKEN DOWN BY CHANNEL                            (0:45)
 ================================================================================
 ON SLIDE:
-- The forecast isn't just a total — it splits by channel
+- The forecast isn't just a total - it splits by channel
 - (and by campaign type, and campaign)
 - Tells an agency WHERE to put budget
 IMAGE: 08_channel_breakdown.png
 SAY:
 "And it isn't just one total number. Here's the same ninety-day forecast split by channel,
 each with its own range. This is exactly the view an agency needs to decide where to place
-budget — and we provide it right down to the individual campaign level."
+budget - and we provide it right down to the individual campaign level."
 
 ================================================================================
-SLIDE 12  —  THE BUDGET SIMULATOR                              (0:45)
+SLIDE 12  -  THE BUDGET SIMULATOR                              (0:45)
 ================================================================================
 ON SLIDE:
-- Slide a channel's budget up or down → forecast reacts instantly
-- More spend → more sales, but ROAS slowly drops
+- Slide a channel's budget up or down -> forecast reacts instantly
+- More spend -> more sales, but ROAS slowly drops
 - Helps find the point where extra budget stops paying off
 IMAGE: 07_budget_response.png
 SAY:
 "This is the budget simulator you saw live, as a summary. As we increase spend on a channel,
-predicted sales rise — but efficiency, the ROAS, slowly falls. That's the classic
+predicted sales rise - but efficiency, the ROAS, slowly falls. That's the classic
 diminishing-returns curve, and it helps an agency find the sweet spot where extra budget
 stops paying off. It's instant because, as I mentioned, budget is a direct input to the
 model."
 
 ================================================================================
-SLIDE 13  —  RELIABILITY: WE TRIED TO BREAK IT                 (1:00)
+SLIDE 13  -  RELIABILITY: WE TRIED TO BREAK IT                 (1:00)
 ================================================================================
 ON SLIDE:
-- Judges feed in their OWN data — so it must never crash
+- Judges feed in their OWN data - so it must never crash
 - We tested 30 extreme situations (empty files, weird symbols, strange dates,
   missing channel, emojis, huge/tiny numbers...)
-- All 30 handled — zero crashes
+- All 30 handled - zero crashes
 - A crash = score zero, so this is a real advantage
 IMAGE: 09_robustness.png
 SAY:
 "Now, a point I'm proud of: reliability. Because the judges feed in their OWN data, the tool
 has to survive whatever it's given. So we deliberately tried to break our own tool thirty
-different ways — empty files, weird symbols where numbers should be, strange date formats, a
+different ways - empty files, weird symbols where numbers should be, strange date formats, a
 missing channel, even emojis in campaign names, and huge and tiny numbers. All thirty were
 handled without a single crash. This matters enormously, because in this competition a crash
-means an automatic zero. So this robustness isn't just polish — it's a real competitive
+means an automatic zero. So this robustness isn't just polish - it's a real competitive
 advantage."
 
 ================================================================================
-SLIDE 14  —  WHY US + CLOSE                                    (1:00)
+SLIDE 14  -  WHY US + CLOSE                                    (1:00)
 ================================================================================
 ON SLIDE:
 - We predict a realistic RANGE, not one risky number
 - We caught and fixed the Meta "no revenue" trap
-- ~8% accuracy on total sales, with an honest 89–94% range
-- Reliably passes the strict offline test — where many fail
+- ~8% accuracy on total sales, with an honest 89-94% range
+- Reliably passes the strict offline test - where many fail
 - Live budget simulation + plain-English AI explanations
-- Thank you — happy to take questions
+- Thank you - happy to take questions
 IMAGE: 09_robustness.png (or a clean summary slide)
 SAY:
-"So, to bring it together — five reasons this solution stands out. One: we predict a
+"So, to bring it together - five reasons this solution stands out. One: we predict a
 realistic range, not one risky number. Two: we caught and honestly fixed the Meta
 no-revenue trap. Three: we're accurate to about eight percent on total sales, with a
 calibrated eighty-nine to ninety-four percent range. Four: it reliably passes the strict
 offline test where many projects fail. And five: it combines live budget simulation with
 plain-English AI explanations. In short, it's a genuinely useful, honest, and reliable
-forecasting tool — not just a demo. Thank you so much for your time; I'd be glad to take any
+forecasting tool - not just a demo. Thank you so much for your time; I'd be glad to take any
 questions."
 
 ================================================================================
-BACK-POCKET ANSWERS (for Q&A — say briefly, confidently)
+BACK-POCKET ANSWERS (for Q&A - say briefly, confidently)
 ================================================================================
 - "How do you handle Meta's missing revenue?"  ->  Estimate it as spend times the blended
   Google+Bing return rate (~4.75x), clearly labelled as an estimate; avoids a $146M error.
 - "Why a range, not one number?"  ->  Business planning needs best and worst cases; a single
-  number hides risk. Ours is calibrated to ~80% coverage (we measured 89–94%).
-- "Will it run on our data?"  ->  Yes — one offline command, pinned versions, model committed,
+  number hides risk. Ours is calibrated to ~80% coverage (we measured 89-94%).
+- "Will it run on our data?"  ->  Yes - one offline command, pinned versions, model committed,
   verified on a clean clone and 30 edge cases.
-- "Where does the AI fit?"  ->  Only to explain our computed numbers — it never invents
-  figures — and it's outside the scored path, so it can't break scoring.
+- "Where does the AI fit?"  ->  Only to explain our computed numbers - it never invents
+  figures - and it's outside the scored path, so it can't break scoring.
 - "What's the model?"  ->  Three LightGBM quantile models (low/middle/high) plus conformal
   calibration for honest ranges; campaign forecasts add up to channel and total.
 - "What would you improve next?"  ->  Replace the Meta estimate with real Shopify/GA4 revenue;

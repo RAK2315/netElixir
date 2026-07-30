@@ -6,8 +6,8 @@ IMPORTANT (unpickling contract): the scorer runs ``pickle.load`` on
 time. ``predict.py`` therefore imports :class:`ForecastModel` before unpickling,
 and ``run.sh`` exports ``PYTHONPATH=.`` so ``src.forecasting.model`` resolves.
 
-Design: quantile gradient boosting. We fit three LightGBM regressors — one each
-for the P10, P50, P90 conditional quantiles of window revenue — plus per-horizon
+Design: quantile gradient boosting. We fit three LightGBM regressors - one each
+for the P10, P50, P90 conditional quantiles of window revenue - plus per-horizon
 conformal deltas that widen the raw P10/P90 so the intervals hit their nominal
 coverage (see conformal.py). Aggregation from campaign -> type/channel/blended
 is done in :meth:`predict_frame` by Monte-Carlo sampling each campaign's
@@ -41,7 +41,7 @@ class ForecastModel:
     metrics: dict = field(default_factory=dict)
     version: str = "1.0"
 
-    # ── categorical encoding (shared by train + inference) ──────────────────
+    # -- categorical encoding (shared by train + inference) ------------------
     def encode(self, X: pd.DataFrame) -> pd.DataFrame:
         X = X.copy()
         for c in CATEGORICAL_FEATURES:
@@ -53,7 +53,7 @@ class ForecastModel:
                 X[c] = pd.to_numeric(X[c], errors="coerce").astype("float64")
         return X[self.feature_columns]
 
-    # ── raw per-row quantile predictions (campaign grain) ───────────────────
+    # -- raw per-row quantile predictions (campaign grain) -------------------
     def predict_quantiles(self, X: pd.DataFrame) -> pd.DataFrame:
         Xe = self.encode(X)
         preds = {}
@@ -72,7 +72,7 @@ class ForecastModel:
         out["p90"] = np.maximum(out["p90"], out["p50"])
         return out[["p10", "p50", "p90"]]
 
-    # ── full multi-grain forecast table ─────────────────────────────────────
+    # -- full multi-grain forecast table -------------------------------------
     def predict_frame(
         self, X: pd.DataFrame, meta: pd.DataFrame, n_sims: int = 2000
     ) -> pd.DataFrame:

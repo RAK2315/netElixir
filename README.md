@@ -12,7 +12,7 @@
 ![Interval coverage](https://img.shields.io/badge/interval%20coverage-89--94%25-2ea44f)
 ![Offline scored](https://img.shields.io/badge/scored%20pipeline-offline%20%2F%20no%20network-blue)
 
-**AIgnition 2026 · NetElixir.** An AI-assisted forecasting utility that predicts
+**AIgnition 2026 - NetElixir.** An AI-assisted forecasting utility that predicts
 e-commerce **revenue** and **ROAS** as *probabilistic ranges* (P10/P50/P90) over
 30/60/90-day windows, across paid channels (Google, Microsoft/Bing, Meta), and
 explains the forecast with an **LLM causal-inference layer**.

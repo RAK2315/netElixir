@@ -8,10 +8,10 @@ grain**. One training example is:
      planned spend for the next *H* days, what revenue will it earn in (t, t+H]?"
 
 Key properties:
-  * **No leakage** — every feature is computed from data on or before *t*; the
+  * **No leakage** - every feature is computed from data on or before *t*; the
     target is the sum of revenue strictly after *t*.
   * **Horizon is a feature** (30/60/90), so a single model serves every window.
-  * **Planned spend is a feature** — at train time it's the *actual* future
+  * **Planned spend is a feature** - at train time it's the *actual* future
     spend; at inference it defaults to the trailing run-rate and can be
     overridden by the budget simulator. This is what makes budget-response
     forecasting native.
@@ -98,7 +98,7 @@ def _forward_sum(cum: pd.DataFrame, idx: pd.DatetimeIndex, t, h: int, col: str) 
 
 
 def _seasonality(t, h: int) -> tuple[float, float, int]:
-    """Encode *when* the forecast window sits, using its midpoint month —
+    """Encode *when* the forecast window sits, using its midpoint month -
     captures seasonality without needing the future data itself."""
     mid = pd.Timestamp(t) + pd.Timedelta(days=h // 2)
     m = mid.month
@@ -215,7 +215,7 @@ def build_inference(
     = latest date in the data), for every currently-active campaign x horizon.
 
     ``budget_multipliers`` (optional, keyed by channel) scales the run-rate
-    planned spend — this is exactly what the budget simulator passes in.
+    planned spend - this is exactly what the budget simulator passes in.
     Returns (X, meta) aligned row-for-row.
 
     Robustness: the active-campaign filter relaxes gracefully (30d -> 90d ->

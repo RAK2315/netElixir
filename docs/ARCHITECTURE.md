@@ -6,14 +6,14 @@ The submission is graded by an **offline automated pipeline** *and* by **human
 judges**. These want different things, so the system is split so neither
 compromises the other:
 
-- **Layer A — Scoring core.** Deterministic, no-network, pickled model behind
+- **Layer A - Scoring core.** Deterministic, no-network, pickled model behind
   `run.sh`. Its only job: produce an accurate `predictions.csv` on held-out data.
-- **Layer B — Product/demo.** Streamlit dashboard + LLM causal insights + budget
+- **Layer B - Product/demo.** Streamlit dashboard + LLM causal insights + budget
   simulator. Uses the network freely. **Never imported by `run.sh`.**
 
 ```mermaid
 flowchart TB
-    subgraph A["Layer A · Scoring core (offline, deterministic)"]
+    subgraph A["Layer A - Scoring core (offline, deterministic)"]
         direction LR
         D["data/*.csv<br/>(held-out at test)"] --> GF["generate_features.py"]
         GF --> F["features.parquet"]
@@ -26,8 +26,8 @@ flowchart TB
         FEAT["features.py<br/>multi-horizon feature builder"]
         FM["model.py<br/>ForecastModel: quantile GBM + conformal + MC aggregation"]
     end
-    subgraph B["Layer B · Product/demo (network OK, NOT scored)"]
-        APP["streamlit_app.py<br/>fan charts · budget simulator · KPIs"]
+    subgraph B["Layer B - Product/demo (network OK, NOT scored)"]
+        APP["streamlit_app.py<br/>fan charts - budget simulator - KPIs"]
         INS["insights.py<br/>LLM causal layer + offline fallback"]
         LLM(("Groq / OpenAI-compatible API"))
         APP --> INS --> LLM
@@ -54,25 +54,25 @@ flowchart TB
 1. **`run.sh`** sets `PYTHONPATH`, resolves args (`DATA_DIR MODEL_PATH
    OUTPUT_PATH`) with defaults, `mkdir -p` the output dir, and runs two Python
    steps under `set -euo pipefail`.
-2. **`generate_features.py`** → `schema.load_channel_data()` (auto-detect,
-   unify, impute Meta) → `features.build_inference()` (one row per active
-   campaign × horizon, run-rate planned spend) → `features.parquet`.
+2. **`generate_features.py`** -> `schema.load_channel_data()` (auto-detect,
+   unify, impute Meta) -> `features.build_inference()` (one row per active
+   campaign x horizon, run-rate planned spend) -> `features.parquet`.
 3. **`predict.py`** imports `ForecastModel` (so the pickle resolves), loads
-   `model.pkl`, calls `model.predict_frame()` → quantile prediction + conformal
-   widening + Monte-Carlo grain aggregation → `output/predictions.csv`.
+   `model.pkl`, calls `model.predict_frame()` -> quantile prediction + conformal
+   widening + Monte-Carlo grain aggregation -> `output/predictions.csv`.
 
 ## LLM integration workflow (Layer B)
 
 ```
-forecast + recent channel facts  ─▶  build_context()  (compact, faithful JSON)
-                                        │
-                       ┌────────────────┴─────────────────┐
+forecast + recent channel facts  - build_context()  (compact, faithful JSON)
+                                        |
+                       +----------------+-----------------+
                  key present?                         no key / offline
-                       │                                   │
-              llm_generate() ── OpenAI-compatible     render_fallback()
+                       |                                   |
+              llm_generate() -- OpenAI-compatible     render_fallback()
               (Groq etc.) POST /chat/completions      (deterministic rules)
-                       │                                   │
-                       └──────────▶  markdown briefing  ◀──┘
+                       |                                   |
+                       +---------- markdown briefing  --+
 ```
 The model is only ever asked to *interpret* our numbers, never to compute them.
 

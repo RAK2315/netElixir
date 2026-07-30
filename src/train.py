@@ -46,7 +46,7 @@ def _wape(y, yhat) -> float:
 
 def _fit_quantile(Xe, y, alpha, cat_idx):
     """Native LightGBM Booster (NOT the sklearn wrapper) so the pickled model
-    has zero scikit-learn dependency at load/predict time — avoids the classic
+    has zero scikit-learn dependency at load/predict time - avoids the classic
     sklearn-version-mismatch unpickle failure and keeps requirements.txt minimal."""
     dtrain = lgb.Dataset(Xe, label=y, categorical_feature=cat_idx,
                          free_raw_data=False)
@@ -76,7 +76,7 @@ def main():
     X, y, meta = build_supervised(long_df, HORIZONS, cutoff_stride=args.cutoff_stride)
     print(f"[train] {len(X):,} training examples across horizons {HORIZONS}")
 
-    # ── walk-forward split by cutoff date ───────────────────────────────────
+    # -- walk-forward split by cutoff date -----------------------------------
     cutoffs = np.sort(meta["cutoff"].unique())
     n = len(cutoffs)
     train_cut = cutoffs[: int(n * 0.65)]
@@ -87,7 +87,7 @@ def main():
     te = meta["cutoff"].isin(test_cut).values
     print(f"[train] split -> train={tr.sum()} calib={ca.sum()} test={te.sum()}")
 
-    # ── categorical encoding levels (from FULL data for stability) ──────────
+    # -- categorical encoding levels (from FULL data for stability) ----------
     category_levels = {c: sorted(X[c].astype(str).unique().tolist())
                        for c in CATEGORICAL_FEATURES}
     fm = ForecastModel(
@@ -99,14 +99,14 @@ def main():
     Xe = fm.encode(X)
     cat_idx = [Xe.columns.get_loc(c) for c in CATEGORICAL_FEATURES]
 
-    # ── fit quantile boosters on TRAIN ──────────────────────────────────────
+    # -- fit quantile boosters on TRAIN --------------------------------------
     print("[train] fitting quantile boosters ...")
     qnames = {0.1: "p10", 0.5: "p50", 0.9: "p90"}
     for q in QUANTILES:
         fm.boosters[q] = _fit_quantile(Xe[tr], y[tr], q, cat_idx)
         print(f"         fitted alpha={q} ({qnames[q]})")
 
-    # ── conformal calibration on CALIB slice ────────────────────────────────
+    # -- conformal calibration on CALIB slice --------------------------------
     print("[train] conformal calibration ...")
     p10_c = np.clip(fm.boosters[0.1].predict(Xe[ca]), 0, None)
     p90_c = np.clip(fm.boosters[0.9].predict(Xe[ca]), 0, None)
@@ -115,7 +115,7 @@ def main():
     )
     print(f"         deltas per horizon: {fm.conformal_delta}")
 
-    # ── honest backtest on TEST ─────────────────────────────────────────────
+    # -- honest backtest on TEST ---------------------------------------------
     q_test = fm.predict_quantiles(X[te])
     p50 = q_test["p50"].values
     wape_all = _wape(y[te].values, p50)
@@ -123,7 +123,7 @@ def main():
         y[te].values, q_test["p10"].values, q_test["p90"].values,
         meta.loc[te, "horizon"].values,
     )
-    # aggregate (blended-per-cutoff) WAPE — the number agencies actually care about
+    # aggregate (blended-per-cutoff) WAPE - the number agencies actually care about
     agg = meta.loc[te].copy()
     agg["y"] = y[te].values
     agg["yhat"] = p50
@@ -152,7 +152,7 @@ def main():
     print(cov.to_string(index=False))
     print("=====================================================================\n")
 
-    # ── retrain on ALL data for the shipped artifact (train+calib+test) ─────
+    # -- retrain on ALL data for the shipped artifact (train+calib+test) -----
     # We keep the calibration deltas learned above (they're horizon-level and
     # transfer), but refit boosters on everything so the deployed model uses
     # the maximum history. This is standard practice after backtesting.

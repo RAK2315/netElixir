@@ -55,7 +55,7 @@ def calibrate(
 def coverage_report(
     y_true: np.ndarray, p10: np.ndarray, p90: np.ndarray, horizons: np.ndarray
 ) -> pd.DataFrame:
-    """Empirical coverage of [p10, p90] per horizon — used to prove calibration
+    """Empirical coverage of [p10, p90] per horizon - used to prove calibration
     worked (target ~0.80)."""
     y_true, p10, p90 = map(lambda a: np.asarray(a, float), (y_true, p10, p90))
     horizons = np.asarray(horizons, int)
