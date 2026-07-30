@@ -268,7 +268,8 @@ st.subheader("5 - AI explanation of this forecast")
 if st.button("Generate AI briefing", type="primary"):
     with st.spinner("Reasoning over the numbers..."):
         st.session_state["insights"] = generate_insights(
-            long_df, preds, meta_assumed_roas=report.meta_assumed_roas)
+            long_df, preds, meta_assumed_roas=report.meta_assumed_roas,
+            focus_horizon=horizon)
 ins = st.session_state.get("insights")
 if ins:
     st.caption("Source: " + ("AI-generated" if ins["source"] == "llm"
@@ -277,8 +278,9 @@ if ins:
 else:
     st.info("Click **Generate AI briefing** for a plain-English summary of what to expect, "
             "why, the risks, and recommended actions. Works offline too.")
-caption("An AI reads only the numbers above (it never invents figures) and writes a short "
-        "briefing: what to expect, the causes, the risks, and what to do.")
+caption(f"An AI reads only the numbers above (it never invents figures) and writes a short "
+        f"briefing, leading with your selected {horizon}-day window: what to expect, the "
+        "causes, the risks, and what to do.")
 
 # -- 6. data quality --------------------------------------------------------
 st.subheader("6 - The data behind it (transparency)")

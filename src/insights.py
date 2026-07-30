@@ -59,7 +59,8 @@ class LLMConfig:
 
 # -- Numeric context assembly (the ground truth the LLM reasons over) -------
 def build_context(long_df: pd.DataFrame, preds: pd.DataFrame,
-                  meta_assumed_roas: float | None = None) -> dict:
+                  meta_assumed_roas: float | None = None,
+                  focus_horizon: int | None = None) -> dict:
     """Distil the data + forecast into a compact, faithful fact sheet."""
     anchor = pd.Timestamp(long_df["date"].max())
     last30 = long_df[long_df["date"] > anchor - pd.Timedelta(days=30)]
@@ -96,8 +97,10 @@ def build_context(long_df: pd.DataFrame, preds: pd.DataFrame,
                  (preds.horizon_days == 90)][["entity", "p50"]]
     contrib = {r.entity: round(float(r.p50)) for _, r in ch90.iterrows()}
 
+    primary = int(focus_horizon) if focus_horizon in fc else max(fc)
     return {
         "anchor_date": str(anchor.date()),
+        "primary_horizon": primary,
         "forecast": fc,
         "channel_90d_revenue": contrib,
         "recent_channels": merged[[
@@ -133,9 +136,13 @@ def _prompt(context: dict) -> str:
         "Here is a probabilistic e-commerce revenue forecast and recent channel "
         "performance (all figures are model outputs / historical facts):\n\n"
         f"{json.dumps(context, indent=2)}\n\n"
+        f"The user is currently looking at the {context['primary_horizon']}-day "
+        f"window, so LEAD with the {context['primary_horizon']}-day figures and only "
+        "briefly mention the other windows.\n"
         "Write a briefing with EXACTLY these markdown sections:\n"
-        "### Forecast Summary\n(2-3 sentences on expected revenue & ROAS with the "
-        "P10-P90 range framed as best/worst case.)\n"
+        "### Forecast Summary\n(2-3 sentences on expected revenue & ROAS for the "
+        f"{context['primary_horizon']}-day window, with the P10-P90 range framed as "
+        "best/worst case.)\n"
         "### Why (Causal Drivers)\n(bullet points tying the forecast to recent "
         "channel trends, ROAS shifts, and seasonality.)\n"
         "### Anomalies & Risks\n(bullet points on channels declining, volatility, "
@@ -176,7 +183,8 @@ def llm_generate(context: dict, config: LLMConfig | None = None) -> str | None:
 # -- Deterministic fallback narrative (offline-safe) ------------------------
 def render_fallback(context: dict) -> str:
     fc = context["forecast"]
-    h90 = fc.get(90) or list(fc.values())[-1]
+    H = context.get("primary_horizon") or max(fc)
+    hf = fc.get(H) or list(fc.values())[-1]
     rows = context["recent_channels"]
     rising = [r for r in rows if (r.get("rev_change_pct") or 0) > 5]
     falling = [r for r in rows if (r.get("rev_change_pct") or 0) < -5]
@@ -187,10 +195,10 @@ def render_fallback(context: dict) -> str:
         return f"${x:,.0f}"
 
     lines = ["### Forecast Summary",
-             f"Over the next 90 days, blended revenue is expected around "
-             f"**{money(h90['revenue_p50'])}** (P50), with a likely range of "
-             f"{money(h90['revenue_p10'])} - {money(h90['revenue_p90'])} "
-             f"(P10-P90) at a blended ROAS of ~{h90['roas_p50']}x. "
+             f"Over the next {H} days, blended revenue is expected around "
+             f"**{money(hf['revenue_p50'])}** (P50), with a likely range of "
+             f"{money(hf['revenue_p10'])} - {money(hf['revenue_p90'])} "
+             f"(P10-P90) at a blended ROAS of ~{hf['roas_p50']}x. "
              f"{context['season_note']}",
              "", "### Why (Causal Drivers)"]
     lines.append(f"- **{top.title()}** is the largest projected revenue "
@@ -227,9 +235,10 @@ def render_fallback(context: dict) -> str:
 
 def generate_insights(long_df: pd.DataFrame, preds: pd.DataFrame,
                       meta_assumed_roas: float | None = None,
-                      config: LLMConfig | None = None) -> dict:
+                      config: LLMConfig | None = None,
+                      focus_horizon: int | None = None) -> dict:
     """Top-level entry used by the app. Returns {'text', 'source', 'context'}."""
-    context = build_context(long_df, preds, meta_assumed_roas)
+    context = build_context(long_df, preds, meta_assumed_roas, focus_horizon)
     text = llm_generate(context, config)
     source = "llm" if text else "fallback"
     if not text:
