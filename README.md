@@ -72,10 +72,12 @@ Produces `output/predictions.csv`. Runs in seconds, fully offline.
 
 ### 2. The demo app (for exploring + AI insights)
 ```bash
-pip install -r requirements.txt -r requirements-app.txt
+pip install -r requirements.txt
 cp .env.example .env         # optional: add a free Groq key for LLM insights
 streamlit run app/streamlit_app.py
 ```
+A live version can be deployed on Streamlit Cloud (main file
+`app/streamlit_app.py`); set `LLM_API_KEY` in the app's Secrets for live AI insights.
 The AI-insights panel works **without** a key via a deterministic rule-based
 fallback; add a key to get LLM-written briefings.
 
@@ -140,8 +142,7 @@ assume spend continues at the trailing 30-day run-rate. Channel- / campaign-type
 ## Repository layout
 ```
 run.sh                     # single entry point for the scorer
-requirements.txt           # scored-path deps only (pandas/numpy/lightgbm/pyarrow)
-requirements-app.txt       # demo-only deps (streamlit/plotly/requests/...)
+requirements.txt           # pinned deps (core scored path + demo app)
 data/                      # sample channel CSVs (overwritten at test time)
 pickle/model.pkl           # committed, pre-trained ForecastModel
 src/

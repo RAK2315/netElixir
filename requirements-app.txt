@@ -1,7 +1,0 @@
-# ── Demo / product layer (NOT needed by the scored run.sh) ─────────────────
-# Install with:  pip install -r requirements.txt -r requirements-app.txt
-# Powers the Streamlit dashboard, charts, and the LLM causal-insight layer.
-streamlit==1.58.0
-plotly==6.8.0
-requests==2.34.2
-python-dotenv==1.2.2
